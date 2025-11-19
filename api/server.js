@@ -7,7 +7,7 @@ const content = fs.readFileSync("./data/devbay_content.txt", "utf-8")
   .filter(line => line.trim().length > 0);
 
 // User question from GitHub Action
-const question = process.argv[2];
+const question = process.argv[2] || "";
 
 // Simple semantic similarity
 function similarity(a, b) {
@@ -37,7 +37,7 @@ if (context === "NO_RELEVANT_DATA") {
   systemPrompt = `
 You are Devbay AI Assistant.
 User question is NOT related to Devbay website content.
-Answer normally in helpful polite way.
+Answer normally in a helpful polite way.
   `;
 } else {
   systemPrompt = `
@@ -54,16 +54,23 @@ If the user asks something not clearly in content, answer using general knowledg
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function run() {
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: question }
-    ]
-  });
+  try {
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: question }
+      ]
+    });
 
-  const answer = completion.choices[0].message.content;
-  console.log(answer);
+    const answer = completion.choices[0]?.message?.content || "No response generated.";
+    process.stdout.write(answer);  // CLEAN output for frontend
+
+  } catch (error) {
+    // Return error message to frontend cleanly
+    process.stdout.write("⚠️ Error: Unable to generate response.");
+  }
 }
 
 run();
+

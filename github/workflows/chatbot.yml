@@ -12,28 +12,26 @@ jobs:
   answer:
     runs-on: ubuntu-latest
 
+    env:
+      FRONTEND_GH_TOKEN: ${{ secrets.CHATBOT_FRONTEND_TOKEN }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    - name: Install dependencies
-      run: npm install openai
+      - name: Install dependencies
+        run: npm install openai
 
-    - name: Run Chatbot
-      run: |
-        node api/server.js "${{ github.event.inputs.question }}"
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Replace Frontend Token in script.js
+        run: |
+          sed -i "s/__FRONTEND_GH_TOKEN__/${FRONTEND_GH_TOKEN}/g" script.js
 
-env:
-  FRONTEND_GH_TOKEN: ${{ secrets.CHATBOT_FRONTEND_TOKEN }}
-
-steps:
-  - name: Replace token in script.js
-    run: |
-      sed -i "s/__FRONTEND_GH_TOKEN__/${FRONTEND_GH_TOKEN}/g" script.js
+      - name: Run Chatbot
+        run: |
+          node api/server.js "${{ github.event.inputs.question }}"

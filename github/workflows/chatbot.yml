@@ -25,24 +25,29 @@ jobs:
           node-version: 18
 
       - name: Install Dependencies
-        run: npm install openai
+        run: |
+          npm install openai
 
       - name: Run Chatbot
         id: chat
         run: |
-          # Create unique output filename using timestamp
+          # Get GitHub run ID for unique output file
           OUTPUT_FILE="chatbot_output_${GITHUB_RUN_ID}.txt"
-          
+
+          # Run the Node.js chatbot with user question
           RESPONSE=$(node api/server.js "${{ github.event.inputs.question }}")
-          
-          echo "$RESPONSE" > $OUTPUT_FILE
-          
-          # Commit output file
+
+          # Print to logs
+          echo "ANSWER: $RESPONSE"
+
+          # Save output to unique file
+          echo "$RESPONSE" > "$OUTPUT_FILE"
+
+      - name: Commit Output File
+        run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add $OUTPUT_FILE
-          git commit -m "Update chatbot output ${GITHUB_RUN_ID}" || echo "No changes"
-          git push
 
-          # Print output filename for frontend reference
-          echo "OUTPUT_FILE=$OUTPUT_FILE" >> $GITHUB_ENV
+          git add chatbot_output_${GITHUB_RUN_ID}.txt
+          git commit -m "Update chatbot output for run $GITHUB_RUN_ID" || echo "No changes"
+          git push

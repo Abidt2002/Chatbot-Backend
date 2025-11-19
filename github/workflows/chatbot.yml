@@ -29,3 +29,11 @@ jobs:
         node api/server.js "${{ github.event.inputs.question }}"
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+env:
+  FRONTEND_GH_TOKEN: ${{ secrets.CHATBOT_FRONTEND_TOKEN }}
+
+steps:
+  - name: Replace token in script.js
+    run: |
+      sed -i "s/__FRONTEND_GH_TOKEN__/${FRONTEND_GH_TOKEN}/g" script.js
